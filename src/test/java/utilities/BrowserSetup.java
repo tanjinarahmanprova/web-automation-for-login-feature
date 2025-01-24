@@ -1,0 +1,53 @@
+package utilities;
+
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.testng.annotations.*;
+
+import java.time.Duration;
+
+
+public class BrowserSetup {
+
+    public static String browserName = System.getProperty("browser", "Chrome");
+    public static final ThreadLocal<WebDriver> LOCAL_BROWSER = new ThreadLocal<>();
+
+    public static WebDriver getBrowser() {
+        return LOCAL_BROWSER.get();
+    }
+
+    public static void setBrowser(WebDriver browser) {
+        BrowserSetup.LOCAL_BROWSER.set(browser);
+    }
+
+    public WebDriver getBrowser(String browserName){
+        if(browserName.equalsIgnoreCase("Chrome")){
+            return new ChromeDriver();
+        }
+        else if (browserName.equalsIgnoreCase("Firefox")) {
+            return new FirefoxDriver();
+        }
+        else if (browserName.equalsIgnoreCase("Edge")) {
+            return new EdgeDriver();
+        }
+        else{
+            throw new RuntimeException("Browser is not available with the given name: "+browserName);
+        }
+    }
+
+    @BeforeSuite //This annotation marks a method that should be run before all tests in the suite
+    public void startBrowser() {
+        WebDriver browser = getBrowser(browserName);
+        browser.manage().timeouts().implicitlyWait(Duration.ofSeconds(5)); //implicit wait
+        browser.manage().window().maximize(); //maximize the window
+        setBrowser(browser);
+    }
+
+    @AfterSuite //This annotation marks a method that should be run after all tests in the suite
+    public void quiteBrowser(){
+        getBrowser().quit();  //closes the browser
+    }
+
+}
